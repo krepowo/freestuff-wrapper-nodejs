@@ -6,8 +6,8 @@ import express, { raw } from 'express';
 import { newSignedMessageVerifier, type VerifierOptions } from './verifier';
 import { emit } from './events';
 import { parseEvent } from './parser';
-import { createFactory } from 'hono/factory';
-import { HTTPException } from 'hono/http-exception';
+// import { createFactory } from 'hono/factory';
+// import { HTTPException } from 'hono/http-exception';
 
 
 type ExpressOptions = Partial<Omit<VerifierOptions, 'publicKey'> & { debug?: boolean; }>
@@ -94,61 +94,61 @@ export function createExpressServer(options: VerifierOptions & { port?: number, 
 }
 
 
-type HonoOptions = Partial<Omit<VerifierOptions, 'publicKey'> & { debug?: boolean; }>
+// type HonoOptions = Partial<Omit<VerifierOptions, 'publicKey'> & { debug?: boolean; }>
 
-export function createHonoHandler(pubkey: string | KeyObject, options?: HonoOptions) {
-  const factory = createFactory();
-  const verifier = newSignedMessageVerifier({
-    publicKey: pubkey,
-    ...(options ?? {}),
-  });
+// export function createHonoHandler(pubkey: string | KeyObject, options?: HonoOptions) {
+//   const factory = createFactory();
+//   const verifier = newSignedMessageVerifier({
+//     publicKey: pubkey,
+//     ...(options ?? {}),
+//   });
 
-  return factory.createHandlers(async (c) => {
-    c.header('X-Set-Compatibility-Date', getCompatibility());
-    c.header('X-Client-Library', getUa());
+//   return factory.createHandlers(async (c) => {
+//     c.header('X-Set-Compatibility-Date', getCompatibility());
+//     c.header('X-Client-Library', getUa());
 
-    const body = await c.req.arrayBuffer()
-      .then((ab) => Buffer.from(ab))
-      .catch((e) => {
-        throw new HTTPException(500, { message: 'Error parsing request body' });
-      });
+//     const body = await c.req.arrayBuffer()
+//       .then((ab) => Buffer.from(ab))
+//       .catch((e) => {
+//         throw new HTTPException(500, { message: 'Error parsing request body' });
+//       });
 
-    if (!body) {
-      throw new HTTPException(400, { message: 'Missing body' });
-    }
+//     if (!body) {
+//       throw new HTTPException(400, { message: 'Missing body' });
+//     }
 
-    if (!Buffer.isBuffer(body)) {
-      throw new HTTPException(500, { message: 'Invalid server configuration' });
-    }
+//     if (!Buffer.isBuffer(body)) {
+//       throw new HTTPException(500, { message: 'Invalid server configuration' });
+//     }
 
-    const result = verifier({
-      data: body,
-      signature: String(c.req.header('webhook-signature')),
-      messageId: String(c.req.header('webhook-id')),
-      timestamp: String(c.req.header('webhook-timestamp')),
-    });
+//     const result = verifier({
+//       data: body,
+//       signature: String(c.req.header('webhook-signature')),
+//       messageId: String(c.req.header('webhook-id')),
+//       timestamp: String(c.req.header('webhook-timestamp')),
+//     });
 
-    if (options?.debug) {
-      console.log('in>', {
-        data: body,
-        signature: String(c.req.header('webhook-signature')),
-        messageId: String(c.req.header('webhook-id')),
-        timestamp: String(c.req.header('webhook-timestamp')),
-      });
-      console.log('out>', result);
-    }
+//     if (options?.debug) {
+//       console.log('in>', {
+//         data: body,
+//         signature: String(c.req.header('webhook-signature')),
+//         messageId: String(c.req.header('webhook-id')),
+//         timestamp: String(c.req.header('webhook-timestamp')),
+//       });
+//       console.log('out>', result);
+//     }
 
-    if (!result.success) {
-      throw new HTTPException(400, { message: `Verification failed: ${result.status}` });
-    }
+//     if (!result.success) {
+//       throw new HTTPException(400, { message: `Verification failed: ${result.status}` });
+//     }
 
-    const compatibilityDate = c.req.header('x-compatibility-date');
-    if (compatibilityDate !== getCompatibility()) {
-      throw new HTTPException(400, { message: 'Incompatible compatibility date' });
-    }
+//     const compatibilityDate = c.req.header('x-compatibility-date');
+//     if (compatibilityDate !== getCompatibility()) {
+//       throw new HTTPException(400, { message: 'Incompatible compatibility date' });
+//     }
 
-    emit(parseEvent(result.payloadJson));
+//     emit(parseEvent(result.payloadJson));
 
-    return c.newResponse(null, 204);
-  })
-}
+//     return c.newResponse(null, 204);
+//   })
+// }
